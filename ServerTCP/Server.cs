@@ -5,14 +5,14 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace ServerTCP
 {
     public class Server
     {
         private int _clientNb = 0;
-        //private static readonly List<Socket> _sockets = new List<Socket>();
-        private static readonly List<User> _users = new();
+        private readonly List<User> _users = new();
         private readonly static DateTime dateTime = DateTime.Now;
         private readonly static string baseLog = "[" + dateTime.ToString("dddd, dd MMMM yyyy HH:mm:ss") + "] :";
         private readonly static string logName = "Log.txt";
@@ -49,65 +49,54 @@ namespace ServerTCP
 
 
         // fonction qui tourne sur les thread secondaire créer qui gère l'écoute des message de chaque client
-        private static void ClientConnection(User user)
+        private void ClientConnection(User user)
         {
             byte[] buffer = new byte[user.Socket.SendBufferSize];
             //Console.WriteLine("Initial size of buffer" + buffer.Count());
 
-            int readByte;
-
             File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
             Console.WriteLine("connexion réussis");
+            _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecté\n")));
+
+            NetworkStream ns = new(user.Socket);
+            TextReader tr = new StreamReader(ns);
+            TextWriter tw = new StreamWriter(ns);
+
             // je rajoute un try catch pour la gestion des deconnexion sauvage coté client
             try
             {
-                do
+                while(true)
                 {
                     // Reception
-                    readByte = user.Socket.Receive(buffer); // remplie le buffer qu'on lui passe en parametre et  return un int qui correspond a la taille (nbr de byte) de ce qu'il vient de remplir dans le buffer
+                    //int actualNumberOfBytesReveived = user.Socket.Receive(buffer); // remplie le buffer qu'on lui passe en parametre et  return un int qui correspond a la taille (nbr de byte) de ce qu'il vient de remplir dans le buffer
+                    //byte[] sizeAdjustedBuffer = new byte[actualNumberOfBytesReveived];
+                    //Array.Copy(buffer, sizeAdjustedBuffer, actualNumberOfBytesReveived);
+
+
+                    string textReceived = tr.ReadLine();
+
+                    //Console.WriteLine(textReceived.Length);
+                    //Console.WriteLine(buffer.Length);
+                    //Console.WriteLine(actualNumberOfBytesReveived);
+
+                    //Console.WriteLine(textReceived);
+                    //Console.WriteLine(textReceived);
+                    //Console.WriteLine(textReceived);
+                    //Console.WriteLine(textReceived == "dio");
+
+
+
                     // Traitement
-                    string textReceived = System.Text.Encoding.UTF8.GetString(buffer);
                     if (user.Pseudo.Length == 0)
                     {
-                        bool pseudoAvailable = true;
-                        Console.WriteLine("on verifie la dispo");
-                        if(_users.Any(x => x.Pseudo == textReceived))
-                        { 
-                                pseudoAvailable = false;
-                                Console.WriteLine("meme pseudo trouvé");
-                        }
-
-                        if (pseudoAvailable)
-                        {
-                            user.Pseudo = textReceived;
-                            user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Votre pseudo a bien été set \n"));
-                            Console.WriteLine("un pseudo a été affecté");
-                        }
-                        else
-                        {
-                            user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Pseudo déjà prit \n"));
-                        }
-                
+                        SetUserPseudo(user, textReceived);
                     }
                     else
                     {
-                        Console.WriteLine("envoie classique du message");
 
-                        //Console.WriteLine("from (" + user.Number.ToString() + ") we got :" + textReceived);
-                        // Reponse du server
-                        user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien reçu \n"));
-                        foreach (User u in _users)
-                        {
-                            u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(user.Pseudo + " send : " + textReceived + "\n"));
-                        }
-                        Array.Clear(buffer, 0, buffer.Length);
-
+                        SendToAll(user, textReceived, buffer);
                     }
-
-
-
-                } while (readByte > 0);
-
+                }
             }
             catch (Exception ex)
             {
@@ -115,15 +104,64 @@ namespace ServerTCP
             }
             finally
             {
+                Console.WriteLine("connexion perdu");
+                Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est déconnecté");
+
                 File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
                 user.Socket.Close();
                 _users.Remove(user);
-                Console.WriteLine("connexion perdu");
+                _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est déconnecté\n")));
+
+            }
+        }
+
+        private void SetUserPseudo(User user, string textReceived)
+        {
+            bool pseudoAvailable = true;
+            Console.WriteLine("on verifie la dispo");
+            if (_users.Any(x => x.Pseudo == textReceived))
+            {
+                pseudoAvailable = false;
+                Console.WriteLine("meme pseudo trouvé");
             }
 
-            Console.ReadKey(); // pour empecher la fermeture de la console
+            if (pseudoAvailable)
+            {
+                user.Pseudo = textReceived;
+                user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Votre pseudo a bien été set \n"));
+                Console.WriteLine("un pseudo a été affecté");
+            }
+            else
+            {
+                user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Pseudo déjà prit \n"));
+            }
+        }
+
+        private void SendToAll(User sender, string textReceived, byte[] buffer)
+        {
+            Console.WriteLine("envoie classique du message");
+
+            //Console.WriteLine("from (" + user.Number.ToString() + ") we got :" + textReceived);
+            // Reponse du server
+            sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien reçu \n"));
+            foreach (User u in _users)
+            {
+                u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(sender.Pseudo + " send : " + textReceived + "\n"));
+            }
+            Array.Clear(buffer, 0, buffer.Length);
         }
 
 
+
+
+
+
+
+
+
+
+
+
     }
+
 }
