@@ -51,16 +51,14 @@ namespace ServerTCP
         // fonction qui tourne sur les thread secondaire créer qui gère l'écoute des message de chaque client
         private void ClientConnection(User user)
         {
-            byte[] buffer = new byte[user.Socket.SendBufferSize];
-            //Console.WriteLine("Initial size of buffer" + buffer.Count());
-
             File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
             Console.WriteLine("connexion réussis");
             _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecté\n")));
 
+            // mes objet pour me permettre de récupéré les message envoyé et envoyé des message
+            // Le couple TexTReader NetworkStream nous prend en charge la conversion des bytes reçu en un string de bonne taille
             NetworkStream ns = new(user.Socket);
             TextReader tr = new StreamReader(ns);
-            TextWriter tw = new StreamWriter(ns);
 
             // je rajoute un try catch pour la gestion des deconnexion sauvage coté client
             try
@@ -68,23 +66,7 @@ namespace ServerTCP
                 while(true)
                 {
                     // Reception
-                    //int actualNumberOfBytesReveived = user.Socket.Receive(buffer); // remplie le buffer qu'on lui passe en parametre et  return un int qui correspond a la taille (nbr de byte) de ce qu'il vient de remplir dans le buffer
-                    //byte[] sizeAdjustedBuffer = new byte[actualNumberOfBytesReveived];
-                    //Array.Copy(buffer, sizeAdjustedBuffer, actualNumberOfBytesReveived);
-
-
                     string textReceived = tr.ReadLine();
-
-                    //Console.WriteLine(textReceived.Length);
-                    //Console.WriteLine(buffer.Length);
-                    //Console.WriteLine(actualNumberOfBytesReveived);
-
-                    //Console.WriteLine(textReceived);
-                    //Console.WriteLine(textReceived);
-                    //Console.WriteLine(textReceived);
-                    //Console.WriteLine(textReceived == "dio");
-
-
 
                     // Traitement
                     if (user.Pseudo.Length == 0)
@@ -93,8 +75,7 @@ namespace ServerTCP
                     }
                     else
                     {
-
-                        SendToAll(user, textReceived, buffer);
+                        SendToAll(user, textReceived);
                     }
                 }
             }
@@ -105,13 +86,11 @@ namespace ServerTCP
             finally
             {
                 Console.WriteLine("connexion perdu");
-                Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est déconnecté");
-
+               // Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est déconnecté"); //cause une erreur
                 File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
                 user.Socket.Close();
                 _users.Remove(user);
                 _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est déconnecté\n")));
-
             }
         }
 
@@ -137,10 +116,9 @@ namespace ServerTCP
             }
         }
 
-        private void SendToAll(User sender, string textReceived, byte[] buffer)
+        private void SendToAll(User sender, string textReceived)
         {
             Console.WriteLine("envoie classique du message");
-
             //Console.WriteLine("from (" + user.Number.ToString() + ") we got :" + textReceived);
             // Reponse du server
             sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien reçu \n"));
@@ -148,7 +126,7 @@ namespace ServerTCP
             {
                 u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(sender.Pseudo + " send : " + textReceived + "\n"));
             }
-            Array.Clear(buffer, 0, buffer.Length);
+            //Array.Clear(buffer, 0, buffer.Length);
         }
 
 
