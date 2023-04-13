@@ -55,7 +55,7 @@ namespace ServerTCP
             //Console.WriteLine("Initial size of buffer" + buffer.Count());
            
             File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
-            Console.WriteLine("connexion réussis");
+            Console.WriteLine("connexion reussis");
             
 
             NetworkStream ns = new(user.Socket);
@@ -108,12 +108,12 @@ namespace ServerTCP
             finally
             {
                 Console.WriteLine("connexion perdu");
-                Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est déconnecté");
+                Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est deconnecte");
 
                 File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
                 user.Socket.Close();
                 _users.Remove(user);
-                _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est déconnecté\n")));
+                _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est deconnecte\n")));
 
             }
         }
@@ -125,15 +125,15 @@ namespace ServerTCP
             if (_users.Any(x => x.Pseudo == textReceived))
             {
                 pseudoAvailable = false;
-                Console.WriteLine("meme pseudo trouvé");
+                Console.WriteLine("meme pseudo trouve");
             }
 
             if (pseudoAvailable)
             {
                 user.Pseudo = textReceived;
-                user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Votre pseudo a bien été set \n"));
-                Console.WriteLine("un pseudo a été affecté");
-                _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecté\n")));
+                user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Votre pseudo a bien ete set \n"));
+                Console.WriteLine("un pseudo a ete affecte");
+                _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecte\n")));
             }
             else
             {
@@ -147,7 +147,7 @@ namespace ServerTCP
 
             //Console.WriteLine("from (" + user.Number.ToString() + ") we got :" + textReceived);
             // Reponse du server
-            sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien reçu \n"));
+            sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien recu \n"));
             foreach (User u in _users)
             {
                 u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(sender.Pseudo + " send : " + textReceived + "\n"));
