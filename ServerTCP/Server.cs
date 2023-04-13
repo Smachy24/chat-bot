@@ -56,7 +56,7 @@ namespace ServerTCP
            
             File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
             Console.WriteLine("connexion réussis");
-            _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecté\n")));
+            
 
             NetworkStream ns = new(user.Socket);
             TextReader tr = new StreamReader(ns);
@@ -74,7 +74,8 @@ namespace ServerTCP
                     //Array.Copy(buffer, sizeAdjustedBuffer, actualNumberOfBytesReveived);
 
 
-                    string textReceived = tr.ReadLine();
+                    int bytesRead = ns.Read(buffer, 0, buffer.Length);
+                    string textReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     
                     //Console.WriteLine(textReceived.Length);
                     //Console.WriteLine(buffer.Length);
@@ -132,10 +133,11 @@ namespace ServerTCP
                 user.Pseudo = textReceived;
                 user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Votre pseudo a bien été set \n"));
                 Console.WriteLine("un pseudo a été affecté");
+                _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecté\n")));
             }
             else
             {
-                user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Pseudo déjà prit \n"));
+                user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Pseudo deja prit"));
             }
         }
 

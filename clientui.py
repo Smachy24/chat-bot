@@ -5,7 +5,7 @@ import threading
 import sys
 from client import Client
 
-HOST = '192.168.1.85'  #IP address server machine
+HOST = '192.168.0.23'  #IP address server machine
 PORT = 3042
 
 class Clientui(customtkinter.CTk):
@@ -69,7 +69,7 @@ class Clientui(customtkinter.CTk):
         if(len(pseudo)>20 or len(pseudo) <= 0 or " " in pseudo): # Verif côté client 
             self.generate_error("Pas d'espace et pas plus de 20char")
         else:
-            if (self._user.connect(pseudo,self._reload_pseudo)): # Verif côté serveur
+            if (self._user.connect(pseudo,self._reload_pseudo)): # Verif côté sersveur
                 if self.label_error.winfo_ismapped():
                     self.label_error.destroy()
                 self.go_chat(page)

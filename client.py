@@ -11,38 +11,47 @@ class Client:
         self._pseudo = ""
     
     def get_server_host(self):
+        """
+        Return server IP address
+        @return (str): server address IP
+        """
         return self._server_host
     
     def get_server_port(self):
+        """
+        Return server port
+        @return (int): server port
+        """
         return self._server_port
     
     def get_pseudo(self):
+        """
+        Return user pseudo
+        @return (str): user pseudo
+        """
         return self._pseudo
     
-    # def create_pseudo(self, tmp_pseudo):
-    #     #tmp_pseudo = input("Enter pseudo : ")
-        
-    #     while(len(tmp_pseudo)>20 or len(tmp_pseudo) <= 0 or " " in tmp_pseudo):
-    #         tmp_pseudo = input("Enter pseudo : ")
-        
-    #     return tmp_pseudo
-    
     def receive_pseudo(self, tmp_pseudo):
+        """
+        
+        """
         self._sckt.send((tmp_pseudo + "\n").encode())
         response = self._sckt.recv(1024).decode("utf8")
         return response
     
     def connect(self, pseudo, is_retry = False):
-        
+        print("========================================")
         if (is_retry == False):
             status = False
             self._sckt.connect((self._server_host,self._server_port)) #Connect socket to server
         
-        tmp_pseudo = pseudo #self.create_pseudo()
+        tmp_pseudo = pseudo
         response = self.receive_pseudo(tmp_pseudo)
-        print("Reponse pseudo : ", response)
+        #print("Reponse pseudo : ", response)
 
-        if response=="Pseudo déjà prit \n":
+        print("Test :" + response)
+        if response=="Pseudo deja prit":
+           print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHh")
            return status
         
         status = True
@@ -56,9 +65,8 @@ class Client:
     def send_message(self, message):
         #message = input("Enter message : ")
         while(len(message)<= 0):
-            message = input("Enter message : ")    
+            message = input("Enter message : ")
         self._sckt.send(message.encode()) #Send data to socket
-
 
     def receive_message(self):
 
@@ -71,6 +79,6 @@ class Client:
                 print("Condition bonne")
                 print(response)
                 return response
-            if not response:
+            else:
                 break
             time.sleep(3)
