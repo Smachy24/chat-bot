@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace ServerTCP
 {
@@ -16,7 +17,8 @@ namespace ServerTCP
         private readonly static DateTime dateTime = DateTime.Now;
         private readonly static string baseLog = "[" + dateTime.ToString("dddd, dd MMMM yyyy HH:mm:ss") + "] :";
         private readonly static string logName = "Log.txt";
-
+        private static List<Group> _groups = new();
+        
         public Server()
         {
             File.WriteAllText(logName, baseLog + " SERVER STARTED\n");
@@ -75,6 +77,89 @@ namespace ServerTCP
                     }
                     else
                     {
+                        //group actions-----------------------------------------------
+                        if (textReceived.StartsWith("/group create"))
+                        {
+                            Console.WriteLine("Group created");
+                            _groups.Add(new Group(user, user.Pseudo));
+                            foreach (Group g in _groups)
+                            {
+                                if (g._adminName == user.Pseudo)
+                                {
+                                    foreach (User u in _users)
+                                    {
+                                        if (u.Pseudo == user.Pseudo)
+                                        {
+                                            g._members.Add(u);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (textReceived.StartsWith("/group invite"))
+                        {
+                            Console.WriteLine("You invited a user");
+                            string[] invitingMessage = textReceived.Split(" ");
+                            if (textReceived.Length > 3)
+                            {
+                                var receiverPseudo = invitingMessage[2];
+                                foreach (Group g in _groups)
+                                {
+                                    if (g._adminName == user.Pseudo)
+                                    {
+                                        foreach (User u in _users)
+                                        {
+                                            if (u.Pseudo == receiverPseudo)
+                                            {
+                                                g._members.Add(u);
+                                            }
+                                        }
+                                    }
+                                }
+                                //envoie de message de confirmation
+                                //foreach (User u in _users)
+                                //{
+                                //if(u.Pseudo == receiverPseudo)
+                                //{
+                                //u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(user.Pseudo + "sent you an invitation, /group accept to join"));
+                                //}
+                                //}
+                            }
+                        }
+                        else if (textReceived.StartsWith("/group kick"))
+                        {
+                            Console.WriteLine("You kicked a user");
+                            string[] invitingMessage = textReceived.Split(" ");
+                            if (textReceived.Length > 3)
+                            {
+                                var receiverPseudo = invitingMessage[2];
+                                foreach (Group g in _groups)
+                                {
+                                    if (g._adminName == user.Pseudo)
+                                    {
+                                        foreach (User u in _users)
+                                        {
+                                            if (u.Pseudo == receiverPseudo)
+                                            {
+                                                g._members.Remove(u);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else if (textReceived.StartsWith("/group delete"))
+                        {
+                            Console.WriteLine("You deleted your group");
+                            foreach (Group g in _groups)
+                            {
+                                if (g._adminName == user.Pseudo)
+                                {
+                                    _groups.Remove(g);
+                                }
+                            }
+                        }
+                        // end group actions---------------------------------------------------
                         SendToAll(user, textReceived);
                     }
                 }
