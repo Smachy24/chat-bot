@@ -53,7 +53,7 @@ namespace ServerTCP
         {
             byte[] buffer = new byte[user.Socket.SendBufferSize];
             //Console.WriteLine("Initial size of buffer" + buffer.Count());
-
+           
             File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
             Console.WriteLine("connexion réussis");
             _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecté\n")));
@@ -61,12 +61,13 @@ namespace ServerTCP
             NetworkStream ns = new(user.Socket);
             TextReader tr = new StreamReader(ns);
             TextWriter tw = new StreamWriter(ns);
-
             // je rajoute un try catch pour la gestion des deconnexion sauvage coté client
             try
             {
+               
                 while(true)
                 {
+                    
                     // Reception
                     //int actualNumberOfBytesReveived = user.Socket.Receive(buffer); // remplie le buffer qu'on lui passe en parametre et  return un int qui correspond a la taille (nbr de byte) de ce qu'il vient de remplir dans le buffer
                     //byte[] sizeAdjustedBuffer = new byte[actualNumberOfBytesReveived];
@@ -74,7 +75,7 @@ namespace ServerTCP
 
 
                     string textReceived = tr.ReadLine();
-
+                    
                     //Console.WriteLine(textReceived.Length);
                     //Console.WriteLine(buffer.Length);
                     //Console.WriteLine(actualNumberOfBytesReveived);
@@ -89,11 +90,12 @@ namespace ServerTCP
                     // Traitement
                     if (user.Pseudo.Length == 0)
                     {
+                        Console.WriteLine("A");
                         SetUserPseudo(user, textReceived);
                     }
                     else
                     {
-
+                        Console.WriteLine("B");
                         SendToAll(user, textReceived, buffer);
                     }
                 }

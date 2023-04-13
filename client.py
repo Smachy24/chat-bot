@@ -57,8 +57,10 @@ class Client:
 
 
     def receive_message(self):
+
         while(True):
             response = self._sckt.recv(1024) # Limit to 1024 characters
+            
             response = response.decode("utf-8", "ignore").strip().strip('\x00')
             
 
