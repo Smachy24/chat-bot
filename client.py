@@ -8,7 +8,6 @@ class Client:
         self._server_host = server_host
         self._server_port = server_port
         self._sckt = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #socket.AF_INET = IPV4 address, SOCK_STREAM = use TCP protocol
-        self.connect()
         self._pseudo = ""
     
     def get_server_host(self):
@@ -20,31 +19,36 @@ class Client:
     def get_pseudo(self):
         return self._pseudo
     
-    def create_pseudo(self):
-        tmp_pseudo = input("Enter pseudo : ")
+    # def create_pseudo(self, tmp_pseudo):
+    #     #tmp_pseudo = input("Enter pseudo : ")
         
-        while(len(tmp_pseudo)>20 or len(tmp_pseudo) <= 0 or " " in tmp_pseudo):
-            tmp_pseudo = input("Enter pseudo : ")
+    #     while(len(tmp_pseudo)>20 or len(tmp_pseudo) <= 0 or " " in tmp_pseudo):
+    #         tmp_pseudo = input("Enter pseudo : ")
         
-        return tmp_pseudo
+    #     return tmp_pseudo
     
     def receive_pseudo(self, tmp_pseudo):
         self._sckt.send((tmp_pseudo + "\n").encode())
         response = self._sckt.recv(1024).decode("utf8")
         return response
     
-    def connect(self):
-        self._sckt.connect((self._server_host,self._server_port)) #Connect socket to server
+    def connect(self, pseudo, is_retry = False):
         
-        tmp_pseudo = self.create_pseudo()
+        if (is_retry == False):
+            status = False
+            self._sckt.connect((self._server_host,self._server_port)) #Connect socket to server
+        
+        tmp_pseudo = pseudo #self.create_pseudo()
         response = self.receive_pseudo(tmp_pseudo)
         print("Reponse pseudo : ", response)
 
-        while response=="Pseudo déjà prit \n":
-           tmp_pseudo = self.create_pseudo()
-           response = self.receive_pseudo(tmp_pseudo)
+        if response=="Pseudo déjà prit \n":
+           return status
         
+        status = True
         self._pseudo = tmp_pseudo
+
+        return status
     
     def disconnect(self):
         self._sckt.close()
