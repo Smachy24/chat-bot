@@ -3,7 +3,7 @@ import tkinter
 from chatsection import ChatSection
 import sys
 
-HOST = '192.168.0.23'  #IP address server machine
+HOST = '192.168.1.85'  #IP address server machine
 PORT = 3042
 
 
