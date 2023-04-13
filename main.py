@@ -1,10 +1,11 @@
 from client import Client
 import sys
 import threading
+import time
 
 # host local '10.57.33.239'
 
-HOST = '10.57.33.239'  #IP address server machine
+HOST = '192.168.1.85'  #IP address server machine
 PORT = 3042
 
 client = Client(HOST,PORT)
@@ -29,14 +30,21 @@ def choose_option():
             client.disconnect()
             sys.exit()
 
-while(True):
+# send_message_thread = threading.Thread(target=choose_option)
+# send_message_thread.start()
+# send_message_thread.join()
 
-    receive_message_thread = threading.Thread(target=client.receive_message)
-    receive_message_thread.start()
+receive_message_thread = threading.Thread(target=client.receive_message)
+receive_message_thread.start()
 
-    send_message_thread = threading.Thread(target=choose_option)
-    send_message_thread.start()
-    send_message_thread.join()
+
+client.send_message()
+
+
+
+    
+
+    
 
     
     
