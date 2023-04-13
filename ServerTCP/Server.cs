@@ -13,9 +13,13 @@ namespace ServerTCP
         private int _clientNb = 0;
         //private static readonly List<Socket> _sockets = new List<Socket>();
         private static readonly List<User> _users = new();
+        private readonly static DateTime dateTime = DateTime.Now;
+        private readonly static string baseLog = "[" + dateTime.ToString("dddd, dd MMMM yyyy HH:mm:ss") + "] :";
+        private readonly static string logName = "Log.txt";
 
         public Server()
         {
+            File.WriteAllText(logName, baseLog + " SERVER STARTED\n");
             Console.WriteLine("Welcome to the server side !");
             // création d'un socket :  interNetwork : adresse de la famille Ipv4
             Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -52,6 +56,7 @@ namespace ServerTCP
 
             int readByte;
 
+            File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
             Console.WriteLine("connexion réussis");
             // je rajoute un try catch pour la gestion des deconnexion sauvage coté client
             try
@@ -110,6 +115,7 @@ namespace ServerTCP
             }
             finally
             {
+                File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
                 user.Socket.Close();
                 _users.Remove(user);
                 Console.WriteLine("connexion perdu");
