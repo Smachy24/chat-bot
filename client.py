@@ -35,12 +35,11 @@ class Client:
         """
         
         """
-        self._sckt.send((tmp_pseudo + "\n").encode())
+        self._sckt.send((tmp_pseudo).encode())
         response = self._sckt.recv(1024).decode("utf8")
         return response
     
     def connect(self, pseudo, is_retry = False):
-        print("========================================")
         if (is_retry == False):
             status = False
             self._sckt.connect((self._server_host,self._server_port)) #Connect socket to server
@@ -49,9 +48,7 @@ class Client:
         response = self.receive_pseudo(tmp_pseudo)
         #print("Reponse pseudo : ", response)
 
-        print("Test :" + response)
         if response=="Pseudo deja prit":
-           print("HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHh")
            return status
         
         status = True
@@ -76,8 +73,6 @@ class Client:
             response = response.decode("utf-8", "ignore").strip().strip('\x00')
             
             if len(response)!=0:
-                print("Condition bonne")
-                print(response)
                 return response
             else:
                 break

@@ -23,6 +23,7 @@ class Clientui(customtkinter.CTk):
 
         # color
         self.primary_color = "#242424"
+        
 
         # Font parameter
         self.send_button_font = customtkinter.CTkFont(family="Arial", size=18, weight="bold")
@@ -35,12 +36,18 @@ class Clientui(customtkinter.CTk):
         
         self.label_error = tkinter.Label(master=self,text= "Test", font=self.chat_text_font)
     def create_chatpage(self):
+        """
+            Crée une page de chat et l'affiche.
+        """
         chat_page = tkinter.Frame(self, bg=self.primary_color)
         chat_page.pack(side="top")
-        chat_section = ChatSection(chat_page , self.primary_color, self.send_button_font, self.chat_text_font, self, self._user)
+        chat_section = ChatSection(chat_page, self.send_button_font, self.chat_text_font, self, self._user)
         threading.Thread(target=chat_section.display_messages).start()
     
     def create_menu(self):
+        """
+            Crée une page de menu avec des boutons pour rejoindre le salon de discussion ou quitter l'application.
+        """
         page = tkinter.Frame(self, bg=self.primary_color, width=500, height=700,pady=275)
         page.pack(side="top")
 
@@ -51,6 +58,10 @@ class Clientui(customtkinter.CTk):
         quit.pack(side= "top")
 
     def create_pseudo_menu(self):
+        """
+            Crée un formulaire permettant à l'utilisateur d'entrer son pseudo pour se connecter au salon de discussion.
+
+        """
         page = tkinter.Frame(self, bg=self.primary_color, width=500, height=700,pady=275)
         page.pack(side="top")
 
@@ -65,9 +76,19 @@ class Clientui(customtkinter.CTk):
 
     
     def check_pseudo(self, pseudo, page):
+        """
+            Vérifie si le pseudo fourni est valide et tente de se connecter au serveur avec le pseudo fourni.
+            
+            Parameter:
+                pseudo (str): Le pseudo fourni par l'utilisateur.
+                page (tkinter.Frame): La page parent du bouton.
+            
+            Returns:
+                None
 
+        """
         if(len(pseudo)>20 or len(pseudo) <= 0 or " " in pseudo): # Verif côté client 
-            self.generate_error("Pas d'espace et pas plus de 20char")
+            self.generate_error("Pas d'espace et pas plus de 20 caractères")
         else:
             if (self._user.connect(pseudo,self._reload_pseudo)): # Verif côté sersveur
                 if self.label_error.winfo_ismapped():
@@ -80,6 +101,15 @@ class Clientui(customtkinter.CTk):
             
 
     def generate_error(self, message):
+        """
+            Affiche un message d'erreur sur l'interface graphique.
+
+            Parameter:
+                message (str): Le message d'erreur à afficher.
+
+            Returns:
+                None
+        """
         if self.label_error.winfo_ismapped():
             self.label_error.destroy()
         self.label_error = tkinter.Label(master=self,text= message, font=self.chat_text_font)
@@ -87,12 +117,30 @@ class Clientui(customtkinter.CTk):
             
     
     def go_chat(self, old_page):
+        """
+            Détruit la page actuelle et crée la page de chat où l'utilisateur pourra rejoindre le salon de discussion.
+
+            Parameter:
+                old_page (tkinter.Frame): La page actuelle qui doit être détruite.
+
+            Returns:
+                None
+        """
         old_page.destroy()
         self.create_chatpage()
         
 
 
     def go_pseudo(self, old_page):
+        """
+            Détruit la page actuelle et crée la page de connexion où l'utilisateur pourra entrer son pseudo.
+
+            Parameter:
+                old_page (tkinter.Frame): La page actuelle qui doit être détruite.
+
+            Returns:
+                None
+        """
         old_page.destroy()
         self.create_pseudo_menu()
 
