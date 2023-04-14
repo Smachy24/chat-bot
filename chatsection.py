@@ -95,21 +95,27 @@ class ChatSection():
         while True:
             message = self._user.receive_message()
             print(message)
-            if "connecte" not in message and "recu" not in message:
+
+            # Check Messages
+            if "connecte" not in message and "recu" not in message and "aucun utilisateur" not in message:
                 divided_message = None
                 if "(private)" in message:
                     divided_message = message.split(" (private) : ")               
                 elif "send :" in message:
                     divided_message = message.split(" send : ")
+
                 pseudo = divided_message[0]
                 message = divided_message[1]
+
+                # Bg colors
                 if pseudo != self._user.get_pseudo():
                     c_bg_color = self.recieve_color
                 else:
                     c_bg_color = self.send_color
                 self.create_message_card(pseudo, message, c_bg_color)
 
-            if "s'est deconnecte" in message:
+            # Message serveur
+            if "s'est deconnecte" in message or "aucun utilisateur" in message:
                 c_bg_color = "#c9535b"
                 self.create_message_card("SERVEUR", message, c_bg_color)
             elif  "connecte" in message:  
