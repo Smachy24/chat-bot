@@ -125,7 +125,7 @@ namespace ServerTCP
                         {
                             Console.WriteLine("You invited a user");
                             string[] invitingMessage = textReceived.Split(" ");
-                            if (textReceived.Length > 3)
+                            if (invitingMessage.Length > 3)
                             {
                                 string receiverPseudo = invitingMessage[2];
                                 foreach (Group g in _groups)
@@ -148,7 +148,7 @@ namespace ServerTCP
                         {
                             Console.WriteLine("You kicked a user");
                             string[] invitingMessage = textReceived.Split(" ");
-                            if (textReceived.Length > 3)
+                            if (invitingMessage.Length > 3)
                             {
                                 string receiverPseudo = invitingMessage[2];
                                 foreach (Group g in _groups)
@@ -196,7 +196,7 @@ namespace ServerTCP
                         else if(textReceived.StartsWith("/group msg"))
                         {
                             string[] invitingMessage = textReceived.Split(" ");
-                            if (textReceived.Length > 3)
+                            if (invitingMessage.Length > 3)
                             {
                                 string receiverPseudo = invitingMessage[2];
                                 var place = textReceived.IndexOf(receiverPseudo) + receiverPseudo.Length + 1;
@@ -205,9 +205,10 @@ namespace ServerTCP
                                 {
                                     foreach (User u in g._members)
                                     {
-                                        if (g._members.Any(u => u.Pseudo == user.Pseudo))
+                                        if (g._members.Any(u => u.Pseudo == receiverPseudo))
                                         {
                                             u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " send : " + message + "\n"));
+                                            Console.WriteLine("message envoyé");
                                         }
                                     }
                                 }
