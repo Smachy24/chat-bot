@@ -18,6 +18,7 @@ namespace ServerTCP
         private int _clientNb = 0;
         // Collection qui garde en mémoire tout nos client actuellement connectés.
         private readonly List<User> _users = new();
+        private static List<Group> _groups = new();
 
         /// <summary>
         /// CONSTRUCTEUR DU SERVEUR : vient initialiser le socket de notre serveur et le passer dans une écoute continuelle de nouvelle connexion.
@@ -96,6 +97,10 @@ namespace ServerTCP
                     else if(textReceived.StartsWith("/mp"))
                     {
                         SendPrivate(user, textReceived, buffer);
+                    }
+                    else if (textReceived.StartsWith("/group"))
+                    {
+                        GroupActions(user, textReceived);
                     }
                     else
                     {
@@ -229,7 +234,136 @@ namespace ServerTCP
             Array.Clear(buffer, 0, buffer.Length);
         }
 
+        public void GroupActions(User user, string textReceived)
+        {
+            //group actions-----------------------------------------------
+            if (textReceived.StartsWith("/group create"))
+            {
+                _groups.Add(new Group(user, user.Pseudo));
+                foreach (Group g in _groups)
+                {
+                    if (g._adminName == user.Pseudo)
+                    {
+                        foreach (User u in _users)
+                        {
+                            if (u.Pseudo == user.Pseudo)
+                            {
+                                g._members.Add(u);
+                            }
+                        }
+                    }
+                }
+            }
+            else if (textReceived.StartsWith("/group invite"))
+            {
+                string[] invitingMessage = textReceived.Split(" ");
+                if (invitingMessage.Length > 2)
+                {
+                    string receiverPseudo = invitingMessage[2];
+                    foreach (Group g in _groups)
+                    {
+                        if (g._adminName == user.Pseudo)
+                        {
 
+                            foreach (User u in _users)
+                            {
+                                if (u.Pseudo == receiverPseudo)
+                                {
+                                    g._members.Add(u);
+                                    Console.WriteLine(g._members[1].Pseudo);
+                                    Console.WriteLine("You invited a user");
+                                }
+                                //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " joined the group\n"));
+                            }
+                        }
+                    }
+                }
+            }
+            else if (textReceived.StartsWith("/group kick"))
+            {
+                Console.WriteLine("You kicked a user");
+                string[] invitingMessage = textReceived.Split(" ");
+                if (invitingMessage.Length > 2)
+                {
+                    string receiverPseudo = invitingMessage[2];
+                    foreach (Group g in _groups)
+                    {
+                        if (g._adminName == user.Pseudo)
+                        {
+                            foreach (User u in _users)
+                            {
+                                if (u.Pseudo == receiverPseudo)
+                                {
+                                    g._members.Remove(u);
+                                }
+                                //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " has been kicked\n"));
+                            }
+                        }
+                    }
+                }
+            }
+            else if (textReceived.StartsWith("/group delete"))
+            {
+                Console.WriteLine("You deleted your group");
+                foreach (Group g in _groups)
+                {
+                    if (g._adminName == user.Pseudo)
+                    {
+                        _groups.Remove(g);
+                        break;
+                    }
+                }
+            }
+            else if (textReceived.StartsWith("/group leave"))
+            {
+                foreach (Group g in _groups)
+                {
+                    foreach (User u in g._members)
+                    {
+                        if (u.Pseudo == user.Pseudo)
+                        {
+                            Console.WriteLine("fze00");
+                            g._members.Remove(u);
+                            break;
+                        }
+                        //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " left the group\n"));
+                    }
+                }
+            }
+            else if (textReceived.StartsWith("/group msg"))
+            {
+                string[] invitingMessage = textReceived.Split(" ");
+                Console.WriteLine(invitingMessage.Length);
+                if (invitingMessage.Length > 2)
+                {
+
+                    //string receiverPseudo = invitingMessage[1];
+                    //var place = textReceived.IndexOf(receiverPseudo) + receiverPseudo.Length + 1;
+                    var message = textReceived.Substring(11);
+                    Console.WriteLine(message);
+                    Console.WriteLine(_groups.Count);
+
+                    foreach (Group g in _groups)
+                    {
+                        Console.WriteLine(g._members.Count);
+
+                        foreach (User u in g._members)
+                        {
+
+
+                            u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " group : " + message + "\n"));
+
+                            //if (g._members.Any(u => u.Pseudo == user.Pseudo))
+                            //{
+                            //    u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " send : " + message + "\n"));
+
+                            //}
+                        }
+                    }
+                }
+            }
+            // end group actions---------------------------------------------------
+        }
 
 
 
