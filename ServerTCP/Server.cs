@@ -93,12 +93,14 @@ namespace ServerTCP
                     // Traitement
                     if (user.Pseudo.Length == 0)
                     {
-                        Console.WriteLine("A");
                         SetUserPseudo(user, textReceived);
+                    }
+                    else if(textReceived.StartsWith("/mp"))
+                    {
+                        SendPrivate(user, textReceived);
                     }
                     else
                     {
-                        Console.WriteLine("B");
                         SendToAll(user, textReceived, buffer);
                     }
                 }
@@ -147,8 +149,6 @@ namespace ServerTCP
         private void SendToAll(User sender, string textReceived, byte[] buffer)
         {
             Console.WriteLine("envoie classique du message");
-
-            //Console.WriteLine("from (" + user.Number.ToString() + ") we got :" + textReceived);
             // Reponse du server
             sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien recu \n"));
             foreach (User u in _users)
@@ -158,6 +158,47 @@ namespace ServerTCP
             Array.Clear(buffer, 0, buffer.Length);
         }
 
+
+        private void SendPrivate(User sender, string textReceived)
+        {
+            Console.WriteLine("mode privée");
+            string[] textReceivedWords = textReceived.Split(' ');
+            if (textReceivedWords.Length > 2)
+            {
+                string pseudo = textReceivedWords[1];
+                var place = textReceived.IndexOf(pseudo) + pseudo.Length + 1;
+                var message = textReceived.Substring(place);
+
+
+
+                bool isUserFound = false;
+                foreach (User u in _users)
+                {
+                    if (u.Pseudo == pseudo)
+                    {
+                        Console.WriteLine("une cible trouvé");
+                        u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(sender.Pseudo + " (private) : " + message + "\n"));
+                        sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes(sender.Pseudo + " (private) : " + message + "\n"));
+                        isUserFound = true;
+                        break;
+                    }
+                }
+
+                if (isUserFound == false)
+                {
+                    sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("aucun utilisateur correspondant\n"));
+                }
+
+            }
+            else if (textReceivedWords.Length == 2)
+            {
+                sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("veuillez indiquer message\n"));
+            }
+            else
+            {
+                sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Indiquez un pseudo et un message\n"));
+            }
+        }
 
 
 
