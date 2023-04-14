@@ -9,17 +9,24 @@ using System.Reflection;
 
 namespace ServerTCP
 {
+    /// <summary>
+    /// Class server qui gère la reception des connexions et des messages de clients.
+    /// Répartie les multiple client sur différent threads avec une fonction qui gère le traitement a effectué en fonction du message reçu.
+    /// </summary>
     public class Server
     {
         private int _clientNb = 0;
+        // Collection qui garde en mémoire tout nos client actuellement connectés.
         private readonly List<User> _users = new();
-        //private readonly static DateTime dateTime; 
-        //private readonly static string baseLog = "[" + (dateTime = DateTime.Now).ToString("dddd, dd MMMM yyyy HH:mm:ss") + "] :";
-        //private readonly static string logName = "Log.txt";
 
+        /// <summary>
+        /// CONSTRUCTEUR DU SERVEUR : vient initialiser le socket de notre serveur et le passer dans une écoute continuelle de nouvelle connexion.
+        /// A chaque nouvelle connexion, un nouvelle user est créer et stocker en mémoire puis son sa gestion est basculé sur un nouveau thread.
+        /// A la construction le serveur va donc occuper le thread principale.
+        /// </summary>
         public Server()
         {
-            //File.WriteAllText(logName, baseLog + " SERVER STARTED\n");
+            // Création d'un log donnant les information sur la création du Server
             new Logger("SERVER STARTED");
             Console.WriteLine("Welcome to the server side !");
             // création d'un socket :  interNetwork : adresse de la famille Ipv4
@@ -29,7 +36,8 @@ namespace ServerTCP
             // maintenant on connect les deux 
             serverSocket.Bind(ipEndPoint);
 
-            // boucle qui tourne sur le thread principale et qui gère l'écoute de nouvelle connexion
+            // Boucle qui tourne sur le thread principale et qui gère l'écoute de nouvelle connexion.
+            // Cette boucle occupe le thread principale.
             while (true)
             {
                 Console.WriteLine("j'attend une connexion");
@@ -40,7 +48,7 @@ namespace ServerTCP
                 User user = new User(clientSocket, _clientNb);
                 _users.Add(user);
 
-                // pour chaque nouvelle connexion on a un nouveau thread qui va gérer ce client a traver une fonction
+                // pour chaque nouvelle connexion on a un nouveau thread qui va gérer ce client a traver une fonction dédié
                 // le thread aura besoin d'au moins 1 info, le socket avec lequel travailler
                 Thread clientThread;
                 clientThread = new Thread(() => ClientConnection(user));
@@ -49,46 +57,36 @@ namespace ServerTCP
         }
 
 
-        // fonction qui tourne sur les thread secondaire créer qui gère l'écoute des message de chaque client
+        /// <summary>
+        /// Gère la communication avec un client. Ecoute l'arrivé de message et en fonction de son contenu,
+        /// va appeler la fonction pour le traitement adapté.
+        /// Gère egualement la fin de communication/perte de communication avec le dit client et envoie un message d'erreur
+        /// </summary>
+        /// <param name="user">Le client gérer.</param>
         private void ClientConnection(User user)
         {
-            byte[] buffer = new byte[user.Socket.SendBufferSize];
-            //Console.WriteLine("Initial size of buffer" + buffer.Count());
-           
-            //File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
+            // Création d'un log donnant les information sur la connexion de ce client.
             new Logger(" User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected");
             Console.WriteLine("connexion reussis");
-            
 
+            
+            byte[] buffer = new byte[user.Socket.SendBufferSize];
+            // Objet utilisé pour la reception des donnée envoyé par le socket de ce client.
             NetworkStream ns = new(user.Socket);
-            TextReader tr = new StreamReader(ns);
-            TextWriter tw = new StreamWriter(ns);
+            //TextReader tr = new StreamReader(ns);
+            //TextWriter tw = new StreamWriter(ns);
+
             // je rajoute un try catch pour la gestion des deconnexion sauvage coté client
             try
             {
-               
+               // Boucle pour l'écoute d'arrivé de nouveau message du client, et appel du traitement approprié en fonction de son contenu
                 while(true)
                 {
-                    
-                    // Reception
-                    //int actualNumberOfBytesReveived = user.Socket.Receive(buffer); // remplie le buffer qu'on lui passe en parametre et  return un int qui correspond a la taille (nbr de byte) de ce qu'il vient de remplir dans le buffer
-                    //byte[] sizeAdjustedBuffer = new byte[actualNumberOfBytesReveived];
-                    //Array.Copy(buffer, sizeAdjustedBuffer, actualNumberOfBytesReveived);
-
-
+                    // remplie le buffer qu'on lui passe en parametre et  return un int qui correspond a la taille (nbr de byte) de ce qu'il vient de remplir dans le buffer
                     int bytesRead = ns.Read(buffer, 0, buffer.Length);
+                    // on convertie en un string les bytes du buffer, en commançant au premier et en s'arretant au nombre de bytes reelement reçu
+                    // Cela nous permet de ne pas avoir un string composé de nombreux caractères vide.
                     string textReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead);
-                    
-                    Console.WriteLine(textReceived.Length);
-                    //Console.WriteLine(buffer.Length);
-                    //Console.WriteLine(actualNumberOfBytesReveived);
-
-                    //Console.WriteLine(textReceived);
-                    //Console.WriteLine(textReceived);
-                    //Console.WriteLine(textReceived);
-                    //Console.WriteLine(textReceived == "dio");
-
-
 
                     // Traitement
                     if (user.Pseudo.Length == 0)
@@ -97,7 +95,7 @@ namespace ServerTCP
                     }
                     else if(textReceived.StartsWith("/mp"))
                     {
-                        SendPrivate(user, textReceived);
+                        SendPrivate(user, textReceived, buffer);
                     }
                     else
                     {
@@ -105,16 +103,19 @@ namespace ServerTCP
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) 
             {
+                /// une erreur est detecté et nous fait sortir du try executant notre boucle while.
                 Console.WriteLine(ex.Message);
             }
             finally
             {
+                // la connexion avec le client a été perdu :
+                // on le retire de la liste des utilisateur en mémoire et créer message et log de deconnexion.
                 Console.WriteLine("connexion perdu");
                 Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est deconnecte");
 
-                //File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
+                // Création d'un log donnant les information sur la déconnexion de ce client.
                 new Logger(" User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected");
                 user.Socket.Close();
                 _users.Remove(user);
@@ -123,47 +124,72 @@ namespace ServerTCP
             }
         }
 
+        /// <summary>
+        /// Cette fonction recupéré le message d'un user dont le champs pseudo est encore vide pour lui affecté en tant que Pseudo
+        /// plutot que le distribuer aux autre utilisateurs.
+        /// Elle vérifie au préalable si ce message correspond a un pseudo d'un des utilisateur en mémoire. Si oui elle envoie un message d'erreur.
+        /// Si non le message est affecté en pseudo.
+        /// </summary>
+        /// <param name="user">l'utilisateur qui a envoyé le message</param>
+        /// <param name="textReceived">Le message qui a été envoyé, correspondant ici au pseudo désiré</param>
         private void SetUserPseudo(User user, string textReceived)
         {
             bool pseudoAvailable = true;
             Console.WriteLine("on verifie la dispo");
+            // Utilisation de linq sur notre collection de user pour trouver une correspondance
             if (_users.Any(x => x.Pseudo == textReceived))
             {
                 pseudoAvailable = false;
                 Console.WriteLine("meme pseudo trouve");
             }
 
-            if (pseudoAvailable)
+            if (pseudoAvailable) // aucune correspondance trouvé, le pseudo est disponible
             {
                 user.Pseudo = textReceived;
                 user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Votre pseudo a bien ete set \n"));
                 Console.WriteLine("un pseudo a ete affecte");
                 _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est connecte\n")));
             }
-            else
+            else // correspondace avec un pseudo déjà existant trouvé
             {
                 user.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Pseudo deja prit"));
             }
         }
 
+        /// <summary>
+        /// Distribue le message reçu a tout les utilisateur connecté present en mémoire en précisant le user source de ce message et en nettoyant le buffer après distribution.
+        /// </summary>
+        /// <param name="sender">L'utilisateur qui a envoyé le message.</param>
+        /// <param name="textReceived">Le message qui a été envoyé.</param>
+        /// <param name="buffer">le buffer contenant les bytes d'information reçu</param>
         private void SendToAll(User sender, string textReceived, byte[] buffer)
         {
             Console.WriteLine("envoie classique du message");
             // Reponse du server
             sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("message bien recu \n"));
+            // boucle qui distribue le message sur les socket de tout les user en memoire.
             foreach (User u in _users)
             {
                 u.Socket.Send(System.Text.Encoding.UTF8.GetBytes(sender.Pseudo + " send : " + textReceived + "\n"));
             }
+            // On vide le buffer.
             Array.Clear(buffer, 0, buffer.Length);
         }
 
-
-        private void SendPrivate(User sender, string textReceived)
+        /// <summary>
+        /// Decoupe le message reçu, pour récupéré a part le pseudo de la cible et le corp du message et cherche dans _users un user avec un pseudo identique
+        /// pour lui envoyer. Un message d'erreur est envoyé si aucune correspondance n'est trouvé ou si le message ne contient pas toute les informations.
+        /// </summary>
+        /// <param name="sender">L'utilisateur qui a envoyé le message</param>
+        /// <param name="textReceived">le message envoyé respectant le format : /mp (pseudoCible) (message)".</param>
+        /// <param name="buffer">le buffer contenant les bytes d'information reçu</param>
+        private void SendPrivate(User sender, string textReceived, byte[] buffer)
         {
             Console.WriteLine("mode privée");
+            // découpage du message réçu pour récupéré les information qu'il contient
             string[] textReceivedWords = textReceived.Split(' ');
-            if (textReceivedWords.Length > 2)
+            // un message correct doit contenir au moins 3 mots : l'identifiant /mp, un pseudo, un message
+            if (textReceivedWords.Length > 2) 
             {
                 string pseudo = textReceivedWords[1];
                 var place = textReceived.IndexOf(pseudo) + pseudo.Length + 1;
@@ -174,6 +200,7 @@ namespace ServerTCP
                 bool isUserFound = false;
                 foreach (User u in _users)
                 {
+                    // boucle pour chercher une correspondance entre le pseudo précisé et ceux de nos user en mémoire
                     if (u.Pseudo == pseudo)
                     {
                         Console.WriteLine("une cible trouvé");
@@ -190,14 +217,16 @@ namespace ServerTCP
                 }
 
             }
-            else if (textReceivedWords.Length == 2)
+            else if (textReceivedWords.Length == 2) // il manque un mot correspondant au message
             {
                 sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("veuillez indiquer message\n"));
             }
-            else
+            else // il manque 2 mot correspondant au pseudo et au message
             {
                 sender.Socket.Send(System.Text.Encoding.UTF8.GetBytes("Indiquez un pseudo et un message\n"));
             }
+            // On vide le buffer.
+            Array.Clear(buffer, 0, buffer.Length);
         }
 
 
