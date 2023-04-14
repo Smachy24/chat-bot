@@ -5,7 +5,7 @@ import threading
 import sys
 from client import Client
 
-HOST = '10.57.32.227'  #IP address server machine
+HOST = '10.57.33.117'  #IP address server machine
 PORT = 3042
 
 class Clientui(customtkinter.CTk):
