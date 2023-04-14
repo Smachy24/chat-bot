@@ -96,28 +96,34 @@ class ChatSection():
             message = self._user.receive_message()
             print(message)
 
+            private = False
+
             # Check Messages
-            if "connecte" not in message and "recu" not in message and "aucun utilisateur" not in message:
+            if "connecte" not in message and "recu" not in message and "aucun utilisateur" not in message and "veuillez indiquer" not in message and "un pseudo et un message" not in message:
                 divided_message = None
                 if "(private)" in message:
-                    divided_message = message.split(" (private) : ")               
+                    divided_message = message.split(" (private) : ", 1)
+                    private = True        
                 elif "send :" in message:
-                    divided_message = message.split(" send : ")
+                    divided_message = message.split(" send : ", 1)
 
                 pseudo = divided_message[0]
                 message = divided_message[1]
 
                 # Bg colors
-                if pseudo != self._user.get_pseudo():
-                    c_bg_color = self.recieve_color
+                if private:
+                    c_bg_color = "#8e68ad" 
+                elif pseudo != self._user.get_pseudo():
+                    c_bg_color = self.recieve_color                   
                 else:
                     c_bg_color = self.send_color
+
                 self.create_message_card(pseudo, message, c_bg_color)
 
             # Message serveur
-            if "s'est deconnecte" in message or "aucun utilisateur" in message:
+            if ("s'est deconnecte" in message) or ("aucun utilisateur" in message) or ("veuillez indiquer" in message) or ("un pseudo et un message") in message:
                 c_bg_color = "#c9535b"
                 self.create_message_card("SERVEUR", message, c_bg_color)
-            elif  "connecte" in message:  
+            elif "connecte" in message:  
                 c_bg_color = "#54ba76"
                 self.create_message_card("SERVEUR", message, c_bg_color)
