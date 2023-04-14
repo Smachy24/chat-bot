@@ -100,12 +100,11 @@ namespace ServerTCP
                     {
                         SendPrivate(user, textReceived);
                     }
-                    else
+                    else if (textReceived.StartsWith("/group"))
                     {
                         //group actions-----------------------------------------------
                         if (textReceived.StartsWith("/group create"))
                         {
-                            Console.WriteLine("Group created");
                             _groups.Add(new Group(user, user.Pseudo));
                             foreach (Group g in _groups)
                             {
@@ -123,22 +122,24 @@ namespace ServerTCP
                         }
                         else if (textReceived.StartsWith("/group invite"))
                         {
-                            Console.WriteLine("You invited a user");
                             string[] invitingMessage = textReceived.Split(" ");
-                            if (invitingMessage.Length > 3)
+                            if (invitingMessage.Length > 2)
                             {
                                 string receiverPseudo = invitingMessage[2];
                                 foreach (Group g in _groups)
                                 {
                                     if (g._adminName == user.Pseudo)
                                     {
+
                                         foreach (User u in _users)
                                         {
                                             if (u.Pseudo == receiverPseudo)
                                             {
                                                 g._members.Add(u);
+                                                Console.WriteLine(g._members[1].Pseudo);
+                                                Console.WriteLine("You invited a user");
                                             }
-                                            u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " joined the group\n"));
+                                            //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " joined the group\n"));
                                         }
                                     }
                                 }
@@ -148,7 +149,7 @@ namespace ServerTCP
                         {
                             Console.WriteLine("You kicked a user");
                             string[] invitingMessage = textReceived.Split(" ");
-                            if (invitingMessage.Length > 3)
+                            if (invitingMessage.Length > 2)
                             {
                                 string receiverPseudo = invitingMessage[2];
                                 foreach (Group g in _groups)
@@ -161,7 +162,7 @@ namespace ServerTCP
                                             {
                                                 g._members.Remove(u);
                                             }
-                                            u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " has been kicked\n"));
+                                            //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " has been kicked\n"));
                                         }
                                     }
                                 }
@@ -179,42 +180,58 @@ namespace ServerTCP
                                 }
                             }
                         }
-                        else if(textReceived.StartsWith("/group leave"))
+                        else if (textReceived.StartsWith("/group leave"))
                         {
                             foreach (Group g in _groups)
                             {
-                                foreach(User u in g._members)
+                                foreach (User u in g._members)
                                 {
                                     if (u.Pseudo == user.Pseudo)
                                     {
+                                        Console.WriteLine("fze00");
                                         g._members.Remove(u);
+                                        break;
                                     }
-                                    u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " left the group\n"));
+                                    //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " left the group\n"));
                                 }
                             }
                         }
-                        else if(textReceived.StartsWith("/group msg"))
+                        else if (textReceived.StartsWith("/group msg"))
                         {
                             string[] invitingMessage = textReceived.Split(" ");
-                            if (invitingMessage.Length > 3)
+                            Console.WriteLine(invitingMessage.Length);
+                            if (invitingMessage.Length > 2)
                             {
-                                string receiverPseudo = invitingMessage[2];
-                                var place = textReceived.IndexOf(receiverPseudo) + receiverPseudo.Length + 1;
-                                var message = textReceived.Substring(place);
+
+                                //string receiverPseudo = invitingMessage[1];
+                                //var place = textReceived.IndexOf(receiverPseudo) + receiverPseudo.Length + 1;
+                                var message = textReceived.Substring(11);
+                                Console.WriteLine(message);
+                                Console.WriteLine(_groups.Count);
+
                                 foreach (Group g in _groups)
                                 {
+                                    Console.WriteLine(g._members.Count);
+
                                     foreach (User u in g._members)
                                     {
-                                        if (g._members.Any(u => u.Pseudo == receiverPseudo))
-                                        {
-                                            u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " send : " + message + "\n"));
-                                            Console.WriteLine("message envoyé");
-                                        }
+
+
+                                        u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " group : " + message + "\n"));
+
+                                        //if (g._members.Any(u => u.Pseudo == user.Pseudo))
+                                        //{
+                                        //    u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " send : " + message + "\n"));
+
+                                        //}
                                     }
                                 }
                             }
                         }
                         // end group actions---------------------------------------------------
+                    }
+                    else
+                    {
                         SendToAll(user, textReceived, buffer);
                     }
                 }

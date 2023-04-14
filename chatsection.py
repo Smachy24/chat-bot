@@ -103,7 +103,9 @@ class ChatSection():
                 divided_message = None
                 if "(private)" in message:
                     divided_message = message.split(" (private) : ", 1)
-                    private = True        
+                    private = True
+                elif (" group : ") in message:
+                    divided_message = message.split(" group : ", 1)  
                 elif "send :" in message:
                     divided_message = message.split(" send : ", 1)
 
