@@ -13,13 +13,14 @@ namespace ServerTCP
     {
         private int _clientNb = 0;
         private readonly List<User> _users = new();
-        private readonly static DateTime dateTime = DateTime.Now;
-        private readonly static string baseLog = "[" + dateTime.ToString("dddd, dd MMMM yyyy HH:mm:ss") + "] :";
-        private readonly static string logName = "Log.txt";
+        //private readonly static DateTime dateTime; 
+        //private readonly static string baseLog = "[" + (dateTime = DateTime.Now).ToString("dddd, dd MMMM yyyy HH:mm:ss") + "] :";
+        //private readonly static string logName = "Log.txt";
 
         public Server()
         {
-            File.WriteAllText(logName, baseLog + " SERVER STARTED\n");
+            //File.WriteAllText(logName, baseLog + " SERVER STARTED\n");
+            new Logger("SERVER STARTED");
             Console.WriteLine("Welcome to the server side !");
             // création d'un socket :  interNetwork : adresse de la famille Ipv4
             Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
@@ -54,7 +55,8 @@ namespace ServerTCP
             byte[] buffer = new byte[user.Socket.SendBufferSize];
             //Console.WriteLine("Initial size of buffer" + buffer.Count());
            
-            File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
+            //File.AppendAllText(logName, baseLog + " User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected\n");
+            new Logger(" User : " + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " connected");
             Console.WriteLine("connexion reussis");
             
 
@@ -77,7 +79,7 @@ namespace ServerTCP
                     int bytesRead = ns.Read(buffer, 0, buffer.Length);
                     string textReceived = Encoding.UTF8.GetString(buffer, 0, bytesRead);
                     
-                    //Console.WriteLine(textReceived.Length);
+                    Console.WriteLine(textReceived.Length);
                     //Console.WriteLine(buffer.Length);
                     //Console.WriteLine(actualNumberOfBytesReveived);
 
@@ -110,7 +112,8 @@ namespace ServerTCP
                 Console.WriteLine("connexion perdu");
                 Console.WriteLine(user.Socket.RemoteEndPoint.ToString() + " s'est deconnecte");
 
-                File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
+                //File.AppendAllText(logName, baseLog + " User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected\n");
+                new Logger(" User :" + IPAddress.Parse(((IPEndPoint)user.Socket.RemoteEndPoint).Address.ToString()) + " disconnected");
                 user.Socket.Close();
                 _users.Remove(user);
                 _users.ForEach(u => u.Socket.Send(Encoding.UTF8.GetBytes("Un utilisateur s'est deconnecte\n")));
