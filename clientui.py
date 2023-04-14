@@ -5,7 +5,7 @@ import threading
 import sys
 from client import Client
 
-HOST = '192.168.0.23'  #IP address server machine
+HOST = '10.57.32.227'  #IP address server machine
 PORT = 3042
 
 class Clientui(customtkinter.CTk):
@@ -144,8 +144,17 @@ class Clientui(customtkinter.CTk):
         old_page.destroy()
         self.create_pseudo_menu()
 
-
+    def on_closing(self):
+        """
+           Déconnecte l'utilisateur et ferme le script python
+        """
+        if tkinter.messagebox.askokcancel("Quit", "Voulez-vous vous déconnecter ?"):
+            self._user.disconnect()
+            app.destroy()
+            sys.exit()
     
 if __name__ == "__main__":
     app = Clientui()
+    app.protocol("WM_DELETE_WINDOW", app.on_closing) #Execute function on_closing() when tkinter window is closed
     app.mainloop()
+    

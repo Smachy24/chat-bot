@@ -56,6 +56,8 @@ class ChatSection():
         message = self.inputMessage.get()
         if len(message) == 0:
             return
+        elif message.isspace():
+            return
         #self.create_message_card(pseudo=pseudo,message=message)
         self._user.send_message(message)
         self.inputMessage.delete(0, "end")
