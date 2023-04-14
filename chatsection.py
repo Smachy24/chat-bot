@@ -97,6 +97,7 @@ class ChatSection():
             print(message)
 
             private = False
+            group = False
 
             # Check Messages
             if "connecte" not in message and "recu" not in message and "aucun utilisateur" not in message and "veuillez indiquer" not in message and "un pseudo et un message" not in message:
@@ -106,6 +107,7 @@ class ChatSection():
                     private = True
                 elif (" group : ") in message:
                     divided_message = message.split(" group : ", 1)  
+                    group = True
                 elif "send :" in message:
                     divided_message = message.split(" send : ", 1)
 
@@ -114,7 +116,9 @@ class ChatSection():
 
                 # Bg colors
                 if private:
-                    c_bg_color = "#8e68ad" 
+                    c_bg_color = "#8e68ad"
+                elif group:
+                    c_bg_color = "#fa863e"
                 elif pseudo != self._user.get_pseudo():
                     c_bg_color = self.recieve_color                   
                 else:
