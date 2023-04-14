@@ -236,10 +236,34 @@ namespace ServerTCP
 
         public void GroupActions(User user, string textReceived)
         {
-            //group actions-----------------------------------------------
             if (textReceived.StartsWith("/group create"))
             {
-                _groups.Add(new Group(user, user.Pseudo));
+                CreateGroup(user);
+            }
+            else if (textReceived.StartsWith("/group invite"))
+            {
+               InviteUser(user, textReceived);
+            }
+            else if (textReceived.StartsWith("/group kick"))
+            {
+                KickUser(user, textReceived);
+            }
+            else if (textReceived.StartsWith("/group delete"))
+            {
+                DeleteGroup(user);
+            }
+            else if (textReceived.StartsWith("/group leave"))
+            {
+                LeaveGroup(user);
+            }
+            else if (textReceived.StartsWith("/group msg"))
+            {
+               SendGroupMessage(user,textReceived);
+            }
+        }
+
+        public void CreateGroup(User user){
+            _groups.Add(new Group(user, user.Pseudo));
                 foreach (Group g in _groups)
                 {
                     if (g._adminName == user.Pseudo)
@@ -253,10 +277,10 @@ namespace ServerTCP
                         }
                     }
                 }
-            }
-            else if (textReceived.StartsWith("/group invite"))
-            {
-                string[] invitingMessage = textReceived.Split(" ");
+        }
+
+        public void InviteUser(User user, string textReceived){
+             string[] invitingMessage = textReceived.Split(" ");
                 if (invitingMessage.Length > 2)
                 {
                     string receiverPseudo = invitingMessage[2];
@@ -278,10 +302,10 @@ namespace ServerTCP
                         }
                     }
                 }
-            }
-            else if (textReceived.StartsWith("/group kick"))
-            {
-                Console.WriteLine("You kicked a user");
+        }
+
+        public void KickUser(User user, string textReceived){
+            Console.WriteLine("You kicked a user");
                 string[] invitingMessage = textReceived.Split(" ");
                 if (invitingMessage.Length > 2)
                 {
@@ -301,10 +325,10 @@ namespace ServerTCP
                         }
                     }
                 }
-            }
-            else if (textReceived.StartsWith("/group delete"))
-            {
-                Console.WriteLine("You deleted your group");
+        }
+
+        public void DeleteGroup(User user){
+            Console.WriteLine("You deleted your group");
                 foreach (Group g in _groups)
                 {
                     if (g._adminName == user.Pseudo)
@@ -313,10 +337,10 @@ namespace ServerTCP
                         break;
                     }
                 }
-            }
-            else if (textReceived.StartsWith("/group leave"))
-            {
-                foreach (Group g in _groups)
+        }
+
+        public void LeaveGroup(User user){
+            foreach (Group g in _groups)
                 {
                     foreach (User u in g._members)
                     {
@@ -329,40 +353,22 @@ namespace ServerTCP
                         //u.Socket.Send(Encoding.UTF8.GetBytes(u.Pseudo + " left the group\n"));
                     }
                 }
-            }
-            else if (textReceived.StartsWith("/group msg"))
-            {
-                string[] invitingMessage = textReceived.Split(" ");
+        }
+
+        public void SendGroupMessage(User user, string textReceived){
+             string[] invitingMessage = textReceived.Split(" ");
                 Console.WriteLine(invitingMessage.Length);
                 if (invitingMessage.Length > 2)
                 {
-
-                    //string receiverPseudo = invitingMessage[1];
-                    //var place = textReceived.IndexOf(receiverPseudo) + receiverPseudo.Length + 1;
                     var message = textReceived.Substring(11);
-                    Console.WriteLine(message);
-                    Console.WriteLine(_groups.Count);
-
                     foreach (Group g in _groups)
                     {
-                        Console.WriteLine(g._members.Count);
-
                         foreach (User u in g._members)
                         {
-
-
                             u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " group : " + message + "\n"));
-
-                            //if (g._members.Any(u => u.Pseudo == user.Pseudo))
-                            //{
-                            //    u.Socket.Send(Encoding.UTF8.GetBytes(user.Pseudo + " send : " + message + "\n"));
-
-                            //}
                         }
                     }
                 }
-            }
-            // end group actions---------------------------------------------------
         }
 
 
