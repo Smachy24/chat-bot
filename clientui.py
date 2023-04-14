@@ -65,7 +65,7 @@ class Clientui(customtkinter.CTk):
         page = tkinter.Frame(self, bg=self.primary_color, width=500, height=700,pady=275)
         page.pack(side="top")
 
-        label_pseudo = customtkinter.CTkLabel(master=page, text="Entrez votre pseudo", font=self.chat_text_font)
+        label_pseudo = customtkinter.CTkLabel(master=page, text="Entrez votre pseudo", font=self.chat_text_font, text_color="#ffffff")
         label_pseudo.pack(side="top")
 
         input_pseudo = customtkinter.CTkEntry(master=page, placeholder_text="Pseudo...") # On entre le pseudo
