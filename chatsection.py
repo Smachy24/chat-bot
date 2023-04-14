@@ -94,8 +94,13 @@ class ChatSection():
         """
         while True:
             message = self._user.receive_message()
+            print(message)
             if "connecte" not in message and "recu" not in message:
-                divided_message = message.split(" send : ")
+                divided_message = None
+                if "(private)" in message:
+                    divided_message = message.split(" (private) : ")               
+                elif "send :" in message:
+                    divided_message = message.split(" send : ")
                 pseudo = divided_message[0]
                 message = divided_message[1]
                 if pseudo != self._user.get_pseudo():
